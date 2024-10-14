@@ -9,6 +9,7 @@ public class EnemyAI : MonoBehaviour
     //cached refs
     [SerializeField] Transform target;
     NavMeshAgent nMA;
+    Animator anim;
 
     //parameters
     [SerializeField] float aggroRange = 5f;
@@ -21,6 +22,7 @@ public class EnemyAI : MonoBehaviour
     private void Start()
     {
         nMA = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>();
     }
 
     private void Update()
@@ -64,12 +66,15 @@ public class EnemyAI : MonoBehaviour
 
     private void AttackPlayer()
     {
-
+        anim.SetBool("isAttacking", true);
     }
 
     private void ChasePlayer()
     {
         nMA.SetDestination(target.transform.position);
+        anim.SetTrigger("TriggerMovingState");
+        anim.SetBool("isAttacking", false);
+
     }
 
     private void OnDrawGizmosSelected()
@@ -77,5 +82,8 @@ public class EnemyAI : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, aggroRange);
     }
 
-    
+    public void OnDamageTaken()
+    {
+        isAggro = true;
+    }
 }
