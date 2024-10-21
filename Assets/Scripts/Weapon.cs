@@ -8,22 +8,35 @@ public class Weapon : MonoBehaviour
     [SerializeField] Camera playerCam;
     [SerializeField] ParticleSystem muzzleFlash;
     [SerializeField] GameObject hitVFX;
+    [SerializeField] Ammo ammo;
+    [SerializeField] AmmoType ammoType;
 
     [SerializeField] float raycastRange = 100f;
     [SerializeField] float damage = 10f;
+    [SerializeField] float cooldownTime = 0.5f;
+
+    bool canShoot = true;
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        if(Input.GetMouseButtonDown(0) && canShoot)
         {
-            Shoot();
+            StartCoroutine(Shoot());
         }
     }
 
-    private void Shoot()
+    private IEnumerator Shoot()
     {
-        ProcessRaycast();
-        PlayMuzzleFlash();
+        canShoot = false;
+        if(ammo.GetAmmoAmount(ammoType) > 0)
+        {
+            ProcessRaycast();
+            PlayMuzzleFlash();
+            ammo.ReduceAmmo(ammoType);
+        }
+        
+        yield return new WaitForSeconds(cooldownTime);
+        canShoot = true;
     }
 
     private void ProcessRaycast()
@@ -35,9 +48,11 @@ public class Weapon : MonoBehaviour
         {
             CreateHitEffect(somethingWeHit);
             EnemyHealth enemyTarget = somethingWeHit.transform.GetComponent<EnemyHealth>();
+            if (enemyTarget == null) { return; }
             enemyTarget.TakeDamage(damage);
-
+            
         }
+        else { return; }
     }
 
     private void PlayMuzzleFlash()
